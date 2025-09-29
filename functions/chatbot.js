@@ -2,8 +2,7 @@
 
 // The native Node.js 'fetch' is used here, which is available in the Netlify runtime.
 const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_TOKEN;
-// Reverting to the model confirmed by the user to work in Python.
-const MODEL_NAME = "deepseek-ai/DeepSeek-V3-0324";
+const MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2";
 
 // --- System Instruction for the LLM ---
 const PERSONAL_PROFILE = `
