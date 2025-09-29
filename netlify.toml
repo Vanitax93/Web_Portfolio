@@ -1,9 +1,9 @@
 [build]
-  functions = "functions"
-  publish = "."
+functions = "api"
+publish = "."
 
 [functions]
-  node_bundler = "esbuild"
+node_bundler = "esbuild"
 
 [[redirects]]
 from = "/api/chatbot"
