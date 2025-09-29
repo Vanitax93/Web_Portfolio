@@ -91,25 +91,27 @@ exports.handler = async (event) => {
 
     // 1. Check HTTP Method
     if (event.httpMethod !== 'POST') {
+        // This is the correct response for the browser GET request.
         return {
             statusCode: 405,
             body: JSON.stringify({ error: 'Method Not Allowed. Only POST requests are accepted.' }),
         };
     }
 
-    // 2. Check Environment Variable
+    // Check Environment Variable early, before any heavy lifting
     if (!HF_ACCESS_TOKEN) {
-        // This should now show up in Netlify logs if the function executes
         console.error('HUGGINGFACE_TOKEN is not set.');
         return {
             statusCode: 500,
-            body: JSON.stringify({ response: 'Server error: Hugging Face Access Token not configured.' }),
+            body: JSON.stringify({ response: 'Server error: Hugging Face Access Token not configured on the server.' }),
         };
     }
 
+    let query;
     try {
+        // 2. Parse the request body (the JSON payload from the client)
         const body = JSON.parse(event.body);
-        const { query } = body;
+        query = body.query;
 
         if (!query) {
             return {
@@ -118,6 +120,16 @@ exports.handler = async (event) => {
             };
         }
 
+    } catch (error) {
+        console.error('Request Body Parsing Error:', error, 'Received body:', event.body);
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ response: `Invalid request format. Body could not be parsed as JSON. Debug: ${error.message}` }),
+        };
+    }
+
+
+    try {
         // --- 3. Call Hugging Face API ---
         const hfResponse = await fetch(`https://api-inference.huggingface.co/models/${MODEL_NAME}`, {
             method: 'POST',
@@ -136,20 +148,45 @@ exports.handler = async (event) => {
             }),
         });
 
-        const data = await hfResponse.json();
+        // 4. Handle non-200 responses from the Upstream API (Hugging Face)
+        if (!hfResponse.ok) {
+            const status = hfResponse.status;
+            let errorText = await hfResponse.text();
 
-        // 4. Handle API Errors (e.g., token expired, model loading)
-        if (hfResponse.status !== 200 || data.error) {
-            console.error('Hugging Face API Error:', data);
-            const errorMessage = data.error || "Unknown error from Hugging Face API.";
+            // Log the raw error text for debugging, which likely contains "Not Found"
+            console.error(`Hugging Face API returned status ${status}. Raw response: ${errorText}`);
+
+            // Truncate message for client to prevent revealing sensitive info
+            if (errorText.length > 200) errorText = errorText.substring(0, 200) + '...';
+
+            let message = `Upstream API Error (${status}). This usually means the model is unavailable or the token is invalid.`;
+            if (status === 404) {
+                 message = `Upstream API Error: The model '${MODEL_NAME}' was not found. Please check the model name or your token scope.`;
+            } else if (status === 401) {
+                message = `Upstream API Error: Unauthorized. Please check if your HUGGINGFACE_TOKEN is set correctly and is active.`;
+            }
 
             return {
                 statusCode: 502, // Bad Gateway (Upstream service error)
-                body: JSON.stringify({ response: `Upstream API Error: ${errorMessage}` }),
+                body: JSON.stringify({ response: message }),
             };
         }
 
-        // 5. Extract and Return Successful Response
+        // 5. If response is OK, try to parse JSON
+        // This is safe now because we've checked hfResponse.ok
+        const data = await hfResponse.json();
+
+        // 6. Check for specific Hugging Face JSON error structure (if the API returns 200 but contains an error object)
+        if (data.error) {
+             console.error('Hugging Face API Error (JSON):', data);
+             return {
+                statusCode: 502,
+                body: JSON.stringify({ response: `Upstream API Error: ${data.error}` }),
+            };
+        }
+
+
+        // 7. Extract and Return Successful Response
         const botMessage = data.choices[0].message.content;
 
         return {
@@ -158,10 +195,10 @@ exports.handler = async (event) => {
         };
 
     } catch (error) {
-        console.error('Serverless Function Execution Error:', error);
+        console.error('Serverless Function Execution Error (Hugging Face Fetch):', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ response: 'An unexpected internal server error occurred during function execution.' }),
+            body: JSON.stringify({ response: `An unexpected internal server error occurred: ${error.message}` }),
         };
     }
 };
