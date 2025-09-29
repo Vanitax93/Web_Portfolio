@@ -1,6 +1,7 @@
 // This file runs on your serverless platform (e.g., Netlify Functions, Vercel API Routes)
 
 // 🚨 ACTION REQUIRED: Set this Environment Variable on your hosting platform!
+const fetch = require('node-fetch');
 const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_TOKEN;
 const MODEL_NAME = "deepseek-ai/DeepSeek-V3-0324";
 

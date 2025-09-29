@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "framer-motion": "^12.23.22"
+    "framer-motion": "^12.23.22",
+    "node-fetch": "^3.3.2"
   }
 }
