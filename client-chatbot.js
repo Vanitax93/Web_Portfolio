@@ -32,32 +32,36 @@ document.addEventListener('DOMContentLoaded', () => {
         chatAvatar.classList.add('is-thinking');
 
         try {
-            const response = await fetch('/api/chatbot', {
+            // 🚨 CRITICAL FIX: Changed path to the guaranteed Netlify Functions path
+            const response = await fetch('/.netlify/functions/chatbot', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: userMessage }),
+                body: JSON.stringify({ query: userMessage })
             });
 
             if (!response.ok) {
-                throw new Error(`Chatbot API call failed with status: ${response.status}`);
+                // If we get a response but it's an error (4xx or 5xx), throw to enter catch block
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            const botResponse = data.response || "Sorry, I ran into an error getting that answer.";
+            const botResponseText = data.response;
 
-            // --- AVATAR STATE: TALKING (then idle) ---
+            appendMessage(botResponseText, 'bot');
+
+            // --- AVATAR STATE: TALKING then IDLE ---
             chatAvatar.classList.remove('is-thinking');
             chatAvatar.classList.add('is-talking');
 
-            appendMessage(botResponse, 'bot');
-
+            // Simulate talking duration
             setTimeout(() => {
                 chatAvatar.classList.remove('is-talking');
             }, 2500); // Let the avatar "talk" for 2.5 seconds
 
         } catch (error) {
             console.error('Chatbot Error:', error);
-            const errorMessage = "I'm having trouble connecting right now. Please try again later.";
+            // Default message if the fetch completely fails or hits a 404/500
+            const errorMessage = "I'm having trouble connecting right now. Please try again later. (Check console for path errors)";
             appendMessage(errorMessage, 'bot');
             // --- AVATAR STATE: return to idle on error ---
             chatAvatar.classList.remove('is-thinking');

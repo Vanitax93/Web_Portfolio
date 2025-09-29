@@ -85,7 +85,7 @@ Stress resilience, teamwork & collaboration, adaptability, time management, orga
 
 /**
  * The main handler for the Netlify Serverless Function.
- * @param {object} event - The Netlify event object.
+ * @param {object} event - The Netlify event object containing request details.
  * @returns {object} The response object with statusCode and body.
  */
 exports.handler = async (event) => {
@@ -98,10 +98,9 @@ exports.handler = async (event) => {
     }
 
     if (!HF_ACCESS_TOKEN) {
-        // This should not happen if environment variables are set, but provides a safe fallback.
         return {
             statusCode: 500,
-            body: JSON.stringify({ response: 'Hugging Face Access Token not configured on the server.' }),
+            body: JSON.stringify({ response: 'Hugging Face Access Token not configured on the server. Please check environment variables.' }),
         };
     }
 
@@ -115,8 +114,6 @@ exports.handler = async (event) => {
                 body: JSON.stringify({ error: 'Missing query parameter in request body.' }),
             };
         }
-
-        // --- Removed: Custom filter logic based on TRIGGER_WORDS ---
 
         const hfResponse = await fetch(`https://api-inference.huggingface.co/models/${MODEL_NAME}`, {
             method: 'POST',
@@ -139,9 +136,10 @@ exports.handler = async (event) => {
         if (hfResponse.status !== 200 || data.error) {
             console.error('Hugging Face API Error:', data);
             const errorMessage = data.error || "Unknown error from Hugging Face API.";
+
             return {
-                statusCode: hfResponse.status,
-                body: JSON.stringify({ response: `API Error: ${errorMessage}` }),
+                statusCode: 502,
+                body: JSON.stringify({ response: `Upstream API Error: ${errorMessage}` }),
             };
         }
 
@@ -156,7 +154,7 @@ exports.handler = async (event) => {
         console.error('Serverless Function Execution Error:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ response: 'An unexpected internal server error occurred.' }),
+            body: JSON.stringify({ response: 'An unexpected internal server error occurred during function execution.' }),
         };
     }
 };
