@@ -1,0 +1,99 @@
+import React from "react";
+import { motion } from "framer-motion";
+
+// HeroHeader.jsx
+// Usage: put <HeroHeader /> at the top of your page (full-screen hero)
+// Requirements: TailwindCSS + Framer Motion installed in the project
+
+export default function HeroHeader() {
+  return (
+    <header className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gray-900 text-white">
+      {/* Background animated blobs */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <svg className="absolute top-0 left-1/2 -translate-x-1/2 w-[1400px] h-[900px] opacity-40" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1">
+              <stop offset="0%" stopColor="#7c3aed" />
+              <stop offset="100%" stopColor="#06b6d4" />
+            </linearGradient>
+            <filter id="blur" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="60" />
+            </filter>
+          </defs>
+
+          <motion.ellipse
+            cx="220"
+            cy="180"
+            rx="260"
+            ry="140"
+            fill="url(#g1)"
+            filter="url(#blur)"
+            animate={{ cx: [200, 260, 220], cy: [160, 190, 180], opacity: [0.9, 0.7, 0.9] }}
+            transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
+          />
+
+          <motion.ellipse
+            cx="640"
+            cy="340"
+            rx="260"
+            ry="140"
+            fill="rgba(255,255,255,0.06)"
+            filter="url(#blur)"
+            animate={{ cx: [660, 620, 640], cy: [320, 360, 340], opacity: [0.8, 0.5, 0.8] }}
+            transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
+          />
+        </svg>
+
+        {/* subtle star / particle layer */}
+        <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_top_left,_#0f172a,_transparent_30%)] mix-blend-screen pointer-events-none" />
+      </div>
+
+      <div className="container mx-auto px-6 lg:px-20 relative z-10 text-center">
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-4xl sm:text-5xl md:text-7xl font-extrabold leading-tight tracking-tight"
+        >
+          Hello, I&apos;m <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-300">Ben.</span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.25, duration: 0.6 }}
+          className="mt-6 text-lg md:text-xl max-w-2xl mx-auto text-gray-200"
+        >
+          I&apos;m a full-stack web developer building accessible, performant and beautiful web apps.
+        </motion.p>
+
+        <motion.a
+          href="#projects"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="inline-flex items-center gap-3 mt-8 px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur"
+        >
+          View my work
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </motion.a>
+      </div>
+
+      {/* subtle animated grid lines like in the reference */}
+      <div aria-hidden className="absolute inset-0 -z-10 pointer-events-none">
+        <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+          <defs>
+            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+              <path d="M10 0H0V10" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.2" />
+            </pattern>
+          </defs>
+          <rect width="100" height="100" fill="url(#grid)" />
+        </svg>
+      </div>
+
+      {/* small accessibility note for keyboard users */}
+      <span className="sr-only">Hero header with animated gradients and intro text</span>
+    </header>
+  );
+}

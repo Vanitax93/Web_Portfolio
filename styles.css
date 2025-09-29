@@ -1,0 +1,336 @@
+/* styles.css
+   Cleaned and consolidated stylesheet for your portfolio
+   Replace the current styles.css contents with this file.
+*/
+
+/* --------------------------
+   Fonts & Base
+   -------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 62.5%; /* 1rem = 10px */
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 1200px) { html { font-size: 50%; } }
+@media (max-width: 770px)  { html { font-size: 44%; } }
+
+body {
+  min-height: 100vh;
+  font-family: 'Montserrat', sans-serif;
+  color: #fafafa;
+  background: #1a1a1a;
+  line-height: 1.45;
+}
+
+/* Links, lists, buttons */
+a { color: inherit; text-decoration: none; }
+li { list-style: none; }
+button { background: transparent; border: 0; color: inherit; cursor: pointer; }
+
+/* --------------------------
+   Navigation Bar
+   -------------------------- */
+.navigation-bar {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: #282828;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 6rem;
+  box-shadow: 0 6px 8px rgba(0,0,0,0.35);
+}
+.navigation {
+  display:flex;
+  gap: 3rem;
+  margin-right: 8rem;
+  font-size: 2rem;
+  font-weight: 500;
+}
+@media (max-width: 1200px) { .navigation { margin-right: 3rem; } }
+@media (max-width: 700px)  { .navigation { margin-right: 1.5rem; } .navigation-bar { justify-content:center; } }
+.navigation__item:hover,
+.navigation__item--active { color: #ff4d5a; }
+
+/* --------------------------
+   Hero / Canvas
+   -------------------------- */
+.hero { height: 100vh; display:flex; align-items:center; justify-content:center; position:relative; z-index:1; }
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: -1;
+  background: #1a1a1a;
+  pointer-events: none;
+}
+
+/* Heading */
+.heading { text-align:center; color:#fafafa; font-weight:300; z-index:10; }
+.heading__line-1,
+.heading__line-2 { font-size:6rem; margin: .6rem 0; }
+.heading__line-1 span { color:#ff4d5a; font-weight:500; }
+.heading-cta {
+  display:inline-flex; align-items:center; gap:.8rem;
+  margin-top:2.4rem; padding:.8rem 2.4rem;
+  border:2px solid #ff4d5a; color:#ff4d5a;
+  background: rgba(26,26,26,0.6);
+  font-size:2.2rem; border-radius:4px;
+}
+.heading__arrow { transform: rotate(90deg); fill:#ff4d5a; width:24px; height:24px; }
+
+/* --------------------------
+   Section heading utility
+   -------------------------- */
+.section-heading { font-size:5.5rem; font-weight:700; margin:9rem auto 13rem; text-align:center; position:relative; z-index:2; }
+.section-heading:before { content:''; position:absolute; left:50%; transform:translateX(-50%); bottom:-3.2rem; width:22.5rem; height:1.8rem; background:#ff4d5a; z-index:-1; }
+
+/* --------------------------
+   ABOUT
+   -------------------------- */
+.about {
+  padding: 12rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align items to the top */
+}
+.about__container {
+  max-width: 1100px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+  text-align: left;
+}
+.about__photo img {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 4px solid #ff4d5a;
+  object-fit: cover;
+  display: block;
+}
+.about__subtitle { text-transform: uppercase; color: #bdbdbd; font-size: 1.4rem; margin-top: 0.8rem; }
+.about__list { margin: 1rem 0 1.6rem; color: #ddd; font-size: 1.7rem; }
+.about__list li { margin: .4rem 0; }
+.about__text { color: #bcbcbc; font-size: 1.6rem; line-height: 1.7; }
+
+/* right column */
+.about__right h3 { font-size: 2.2rem; margin-bottom: 1.2rem; color: #fff; }
+.about__services { font-size: 1.8rem; line-height: 1.8; }
+.about__services li { margin:.5rem 0; }
+.services-title { margin-top: 4rem; } /* Add space above services */
+
+
+/* NEW: Skills Grid Styling */
+.skill__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 20px;
+}
+
+.skill-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  border-radius: 10px;
+  /* FIX: Using a standard solid border for consistency, matching the accent color. */
+  border: 2px solid #ff4d5a;
+  background-color: #2c2c2e;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.skill-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(255, 77, 90, 0.4);
+}
+
+.skill-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.skill-item p {
+  font-size: 1.4rem;
+  font-weight: 500;
+  text-align: center;
+  color: #fafafa;
+}
+
+@media (max-width: 1000px) {
+  .about__container { grid-template-columns: 1fr; gap: 4rem; }
+  .about { padding: 4rem 1.6rem; }
+  .about__photo { margin: 0 auto; }
+  .about__left { text-align: center; }
+}
+
+/* --------------------------
+   Projects / Carousel
+   -------------------------- */
+.projects { display:flex; flex-direction:column; align-items:center; width:100%; }
+.project {
+  width:100%;
+  max-width:1200px;
+  display:flex;
+  align-items:center;
+  gap: 4rem;
+  margin: 8rem 1rem;
+}
+.project-left { flex-direction:row; }
+.project-right { flex-direction:row-reverse; }
+@media (max-width: 1000px) {
+  .project { flex-direction:column; gap:2rem; margin:5rem 1rem; align-items:flex-start; }
+  .project-right, .project-left { flex-direction: column; }
+}
+.project__image-container {
+  width: 700px;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background: transparent;
+  position: relative;
+}
+.project__image-container .slides { display:flex; transition: transform 0.5s ease-in-out; will-change: transform; }
+.project__image-container .slides img { flex: 0 0 100%; width: 100%; height: 450px; object-fit: cover; display:block; border-radius: 12px; cursor: pointer; }
+.project__image-container .prev,
+.project__image-container .next {
+  position:absolute; top:50%; transform:translateY(-50%); background: rgba(0,0,0,0.45); width:44px; height:44px;
+  border-radius:50%; color:#fff; font-size:2.2rem; display:flex; align-items:center; justify-content:center;
+  z-index:5; box-shadow: 0 6px 14px rgba(0,0,0,.5);
+}
+.project__image-container .prev { left: 12px; }
+.project__image-container .next { right: 12px; }
+.project__info { max-width: 520px; width:100%; padding: 0.5rem 0; }
+.project__title { font-size:3rem; font-weight:700; margin-bottom:1rem; }
+.project__description { font-size:1.6rem; color:#dcdcdc; line-height:1.6; margin-bottom:1.6rem; }
+.project__live, .project__code {
+  display:inline-block; font-size:1.4rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:2px; padding:0.5rem 0; margin-right:1.6rem; position:relative;
+}
+.project__live:hover, .project__code:hover { color:#1a1a1a; }
+.project__live:after, .project__code:after {
+  content:""; position:absolute; left:-8%; top:.6rem; width:120%; height:2px;
+  background:#ff4d5a; transform-origin:center; transform: scaleY(0); transition: transform .2s ease; z-index:-1;
+}
+.project__live:hover:after, .project__code:hover:after { transform: scaleY(16); }
+
+/* --------------------------
+   Lightbox (fullscreen)
+   -------------------------- */
+#lightbox { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.9); z-index:12000; }
+#lightbox.hidden { display:none !important; }
+#lightbox img { max-width:90%; max-height:90%; border-radius:8px; box-shadow: 0 12px 32px rgba(0,0,0,0.7); }
+#lightbox .close { position:absolute; top:28px; right:36px; color:#fff; font-size:3rem; cursor:pointer; }
+
+/* --------------------------
+   Contact
+   -------------------------- */
+.contact { max-width:700px; margin:6rem auto; text-align:center; padding: 2rem 1rem; }
+.contact__heading { margin-top:-3rem; margin-bottom:3rem; }
+.contact__text { font-size:1.8rem; color:#ddd; margin-bottom: 2rem; }
+.contact input, .contact textarea { width:100%; padding:1rem; background:#282828; border:none; color:#fff; font-size:1.6rem; margin-bottom:1rem; }
+.contact__form-submit {
+  display: block; /* Important for margin: auto to work */
+  width: 250px; /* Adjust as needed */
+  margin: 0 auto; /* Center the button */
+
+  /* Overrides for button size/style consistency */
+  font-size: 1.8rem;
+  padding: 15px 20px;
+  border: none; /* Remove border if inherited from project__code */
+  cursor: pointer;
+}
+.contact__form-submit:hover {
+  background: #ff6e7a; /* Slightly lighter red on hover */
+}
+.contact__form-submit-container {
+  text-align: center;
+  margin-top: 30px;
+}
+/* --------------------------
+   Footer
+   -------------------------- */
+.footer { padding: 2.6rem 1rem; text-align:center; background:#282828; color:#fafafa; margin-top:6rem; }
+.return-home { position:relative; width:44px; height:44px; margin: -2rem auto 1rem; background:#ff4d5a; border-radius:6px; display:flex; align-items:center; justify-content:center; }
+
+/* --------------------------
+   CHATBOT ARROW PROMPT
+   -------------------------- */
+#chat-prompt-arrow {
+  position: fixed;
+  bottom: 130px;
+  right: 40px;
+  z-index: 12999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #bdbdbd;
+  font-size: 1.4rem;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+#chat-prompt-arrow.is-visible { opacity: 1; transform: translateY(0); }
+#chat-prompt-arrow p { background: #2c2c2e; padding: 4px 10px; border-radius: 8px; margin-bottom: -10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+#chat-prompt-arrow .chat-arrow { width: 60px; height: 60px; }
+@media (max-width: 1000px) { #chat-prompt-arrow { display: none; } }
+
+/* --------------------------
+   CHATBOT MODERN UI
+   -------------------------- */
+#chatbot-container { position:fixed; right:20px; bottom:20px; z-index:13000; }
+#chatbot-toggle { background:#ff4d5a; color:#fff; padding:12px 18px; border-radius:28px; font-size:1.4rem; cursor:pointer; box-shadow:0 8px 18px rgba(0,0,0,0.35); border: none; }
+#chat-window { width:350px; height:450px; background:#2c2c2e; border-radius:12px; overflow:hidden; border:1px solid #444; margin-bottom:12px; display:flex; flex-direction:column; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+.hidden { display:none !important; }
+.chat-header { background: #3a3a3c; padding: 10px 15px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.chat-avatar-container { width: 40px; height: 40px; }
+.chat-avatar { width: 100%; height: 100%; }
+.chat-title { font-size: 1.6rem; font-weight: 600; color: #fff; }
+.chat-status { font-size: 1.2rem; color: #8e8e93; }
+#chat-messages { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+#chat-messages p { padding: 8px 12px; border-radius: 18px; max-width: 80%; font-size: 1.4rem; line-height: 1.5; }
+.bot-message { background: #3a3a3c; color: #f2f2f7; align-self: flex-start; border-bottom-left-radius: 4px; }
+.user-message { background: #ff4d5a; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+#chat-messages::-webkit-scrollbar { width: 6px; }
+#chat-messages::-webkit-scrollbar-track { background: #2c2c2e; }
+#chat-messages::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+#chat-messages::-webkit-scrollbar-thumb:hover { background: #777; }
+.chat-input-area { display: flex; align-items: center; padding: 10px; background: #3a3a3c; flex-shrink: 0; }
+#chat-input { flex-grow: 1; border: none; background: #2c2c2e; color: #fff; padding: 10px 15px; border-radius: 20px; font-size: 1.4rem; outline: none; }
+#chat-send { background: none; border: none; color: #ff4d5a; padding: 8px; margin-left: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#chat-send svg { width: 24px; height: 24px; }
+
+/* --------------------------
+   AVATAR STATES & ANIMATIONS
+   -------------------------- */
+@keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes talk { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.4); } }
+.chat-avatar .avatar-eyes, .chat-avatar .avatar-mouth { transition: all 0.3s ease; }
+.chat-avatar.is-thinking { animation: pulse 1.5s infinite ease-in-out; }
+.chat-avatar.is-thinking .avatar-eyes { transform: scale(0.8); }
+.chat-avatar.is-thinking .avatar-mouth { transform: scaleX(0.5); }
+.chat-avatar.is-talking .avatar-mouth { animation: talk 0.6s infinite ease-in-out; transform-origin: center; }
+
+/* --------------------------
+   Small helpers
+   -------------------------- */
+.center { display:flex; align-items:center; justify-content:center; }
+.text-muted { color:#bdbdbd; }
+
