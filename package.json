@@ -1,15 +1,8 @@
 {
-  "name": "https://devmaik.netlify.app/",
+  "name": "your-portfolio-site",
   "version": "1.0.0",
-  "scripts": {
-    "build": "netlify build",
-    "dev": "netlify dev"
-  },
   "dependencies": {
     "framer-motion": "^12.23.22",
     "node-fetch": "^3.3.2"
-  },
-  "devDependencies": {
-    "netlify-cli": "^17.20.0"
   }
 }
