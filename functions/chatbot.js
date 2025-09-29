@@ -1,12 +1,12 @@
 // This file runs on your serverless platform (e.g., Netlify Functions, Vercel API Routes)
 
 // 🚨 ACTION REQUIRED: Set this Environment Variable on your hosting platform!
-const fetch = require('node-fetch');
+// Removed: require('node-fetch'); -> Using native fetch in modern Netlify/Node.js environment
 const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_TOKEN;
 const MODEL_NAME = "deepseek-ai/DeepSeek-V3-0324";
 
 // The detailed profile the LLM will use.
-PERSONAL_PROFILE = """
+const PERSONAL_PROFILE = `
 You are Port-AI, an AI assistant representing the professional portfolio and identity of Maik Scherder, an AI Software Engineer based in Krefeld, Germany.
 
 Your sole purpose is to answer questions about Maik Scherder, using only the provided profile information. You must politely refuse to answer unrelated questions. Your tone should be professional, insightful, and slightly witty.
@@ -80,38 +80,43 @@ Stress resilience, teamwork & collaboration, adaptability, time management, orga
 - Playing videogames at a competitive level
 - Baking cakes, cookies and anything sweet
 - Reading books and articles about **space, philosophy, tech and psychology**
-"""
 `;
 
-// ==============================================================================
-// 2. SERVERLESS FUNCTION LOGIC
-// ==============================================================================
 
-export default async (req, res) => {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+/**
+ * The main handler for the Netlify Serverless Function.
+ * @param {object} event - The Netlify event object.
+ * @returns {object} The response object with statusCode and body.
+ */
+exports.handler = async (event) => {
+
+    if (event.httpMethod !== 'POST') {
+        return {
+            statusCode: 405,
+            body: JSON.stringify({ error: 'Method Not Allowed. Only POST requests are accepted.' }),
+        };
     }
 
     if (!HF_ACCESS_TOKEN) {
-        return res.status(500).json({ response: 'Hugging Face Access Token not configured on the server.' });
+        // This should not happen if environment variables are set, but provides a safe fallback.
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ response: 'Hugging Face Access Token not configured on the server.' }),
+        };
     }
 
     try {
-        const { query } = req.body;
+        const body = JSON.parse(event.body);
+        const { query } = body;
+
         if (!query) {
-            return res.status(400).json({ error: 'Missing query parameter in request body.' });
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Missing query parameter in request body.' }),
+            };
         }
 
-        const normalizedQuery = query.toLowerCase();
-
-        // --- CUSTOM FILTER LOGIC: Check for trigger words ---
-        const isTriggered = TRIGGER_WORDS.some(word => normalizedQuery.includes(word));
-
-        if (!isTriggered) {
-            // If none of the trigger words are present, return the refusal message immediately
-            return res.status(200).json({ response: CUSTOM_REFUSAL_MESSAGE });
-        }
-        // --- END CUSTOM FILTER LOGIC ---
+        // --- Removed: Custom filter logic based on TRIGGER_WORDS ---
 
         const hfResponse = await fetch(`https://api-inference.huggingface.co/models/${MODEL_NAME}`, {
             method: 'POST',
@@ -134,15 +139,24 @@ export default async (req, res) => {
         if (hfResponse.status !== 200 || data.error) {
             console.error('Hugging Face API Error:', data);
             const errorMessage = data.error || "Unknown error from Hugging Face API.";
-            return res.status(hfResponse.status).json({ response: `API Error: ${errorMessage}` });
+            return {
+                statusCode: hfResponse.status,
+                body: JSON.stringify({ response: `API Error: ${errorMessage}` }),
+            };
         }
 
         const botMessage = data.choices[0].message.content;
 
-        return res.status(200).json({ response: botMessage });
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ response: botMessage }),
+        };
 
     } catch (error) {
         console.error('Serverless Function Execution Error:', error);
-        return res.status(500).json({ response: 'An unexpected internal server error occurred.' });
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ response: 'An unexpected internal server error occurred.' }),
+        };
     }
 };
