@@ -2,6 +2,7 @@
 
 // The native Node.js 'fetch' is used here, which is available in the Netlify runtime.
 const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_TOKEN;
+// Reverting to the model confirmed by the user to work in Python.
 const MODEL_NAME = "deepseek-ai/DeepSeek-V3-0324";
 
 // --- System Instruction for the LLM ---
@@ -91,14 +92,13 @@ exports.handler = async (event) => {
 
     // 1. Check HTTP Method
     if (event.httpMethod !== 'POST') {
-        // This is the correct response for the browser GET request.
         return {
             statusCode: 405,
             body: JSON.stringify({ error: 'Method Not Allowed. Only POST requests are accepted.' }),
         };
     }
 
-    // Check Environment Variable early, before any heavy lifting
+    // Check Environment Variable
     if (!HF_ACCESS_TOKEN) {
         console.error('HUGGINGFACE_TOKEN is not set.');
         return {
@@ -109,7 +109,7 @@ exports.handler = async (event) => {
 
     let query;
     try {
-        // 2. Parse the request body (the JSON payload from the client)
+        // 2. Parse the request body
         const body = JSON.parse(event.body);
         query = body.query;
 
@@ -130,6 +130,10 @@ exports.handler = async (event) => {
 
 
     try {
+        // 🚨 CRITICAL FIX: Combining system prompt and user query into the 'inputs' field
+        // This switches from the 'Chat Completion' format to the 'Text Generation' format.
+        const fullPrompt = `${PERSONAL_PROFILE}\n\nUser Question: ${query}\n\nAnswer as Port-AI:`;
+
         // --- 3. Call Hugging Face API ---
         const hfResponse = await fetch(`https://api-inference.huggingface.co/models/${MODEL_NAME}`, {
             method: 'POST',
@@ -137,14 +141,13 @@ exports.handler = async (event) => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${HF_ACCESS_TOKEN}`,
             },
-            // Using the recommended Chat Completion structure for DeepSeek-V3
             body: JSON.stringify({
-                messages: [
-                    { "role": "system", "content": PERSONAL_PROFILE },
-                    { "role": "user", "content": query }
-                ],
-                temperature: 0.7,
-                max_new_tokens: 500,
+                // Using the 'inputs' field for Text Generation
+                inputs: fullPrompt,
+                parameters: {
+                    temperature: 0.7,
+                    max_new_tokens: 500,
+                }
             }),
         });
 
@@ -153,10 +156,8 @@ exports.handler = async (event) => {
             const status = hfResponse.status;
             let errorText = await hfResponse.text();
 
-            // Log the raw error text for debugging, which likely contains "Not Found"
             console.error(`Hugging Face API returned status ${status}. Raw response: ${errorText}`);
 
-            // Truncate message for client to prevent revealing sensitive info
             if (errorText.length > 200) errorText = errorText.substring(0, 200) + '...';
 
             let message = `Upstream API Error (${status}). This usually means the model is unavailable or the token is invalid.`;
@@ -172,11 +173,10 @@ exports.handler = async (event) => {
             };
         }
 
-        // 5. If response is OK, try to parse JSON
-        // This is safe now because we've checked hfResponse.ok
+        // 5. If response is OK, parse JSON
         const data = await hfResponse.json();
 
-        // 6. Check for specific Hugging Face JSON error structure (if the API returns 200 but contains an error object)
+        // 6. Check for specific Hugging Face JSON error structure
         if (data.error) {
              console.error('Hugging Face API Error (JSON):', data);
              return {
@@ -185,9 +185,13 @@ exports.handler = async (event) => {
             };
         }
 
-
         // 7. Extract and Return Successful Response
-        const botMessage = data.choices[0].message.content;
+        // Text Generation API returns an array of objects, each with a 'generated_text' property.
+        // The first element of the array contains the full text (including the input prompt).
+        const rawResponse = data[0].generated_text;
+
+        // Since the generated_text includes the input prompt, we strip the prompt to get only the answer.
+        const botMessage = rawResponse.substring(fullPrompt.length).trim();
 
         return {
             statusCode: 200,
