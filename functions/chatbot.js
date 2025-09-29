@@ -1,6 +1,10 @@
-// functions/chatbot.js
-import fetch from "node-fetch";
+// This file runs on the Netlify Serverless Node.js environment.
 
+// The native Node.js 'fetch' is used here, which is available in the Netlify runtime.
+const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_TOKEN;
+const MODEL_NAME = "deepseek-ai/DeepSeek-V3-0324";
+
+// --- System Instruction for the LLM ---
 const PERSONAL_PROFILE = `
 You are Port-AI, an AI assistant representing the professional portfolio and identity of Maik Scherder, an AI Software Engineer based in Krefeld, Germany.
 
@@ -77,58 +81,87 @@ Stress resilience, teamwork & collaboration, adaptability, time management, orga
 - Reading books and articles about **space, philosophy, tech and psychology**
 `;
 
-export async function handler(event) {
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: "Method Not Allowed. Only POST requests are accepted." }),
-    };
-  }
 
-  try {
-    const { query } = JSON.parse(event.body);
+/**
+ * The main handler for the Netlify Serverless Function.
+ * @param {object} event - The Netlify event object containing request details.
+ * @returns {object} The response object with statusCode and body.
+ */
+exports.handler = async (event) => {
 
-    // Combine persona with user input
-    const fullPrompt = `${PERSONAL_PROFILE}\n\nUser Question: ${query}\n\nAnswer as Port-AI:`;
-
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-V3-0324",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: fullPrompt,
-          parameters: {
-            max_new_tokens: 300,
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.text();
-      return {
-        statusCode: response.status,
-        body: JSON.stringify({ error }),
-      };
+    // 1. Check HTTP Method
+    if (event.httpMethod !== 'POST') {
+        return {
+            statusCode: 405,
+            body: JSON.stringify({ error: 'Method Not Allowed. Only POST requests are accepted.' }),
+        };
     }
 
-    const data = await response.json();
+    // 2. Check Environment Variable
+    if (!HF_ACCESS_TOKEN) {
+        // This should now show up in Netlify logs if the function executes
+        console.error('HUGGINGFACE_TOKEN is not set.');
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ response: 'Server error: Hugging Face Access Token not configured.' }),
+        };
+    }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        response: data[0]?.generated_text || "No response from model.",
-      }),
-    };
-  } catch (error) {
-    console.error("Function error:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
-    };
-  }
-}
+    try {
+        const body = JSON.parse(event.body);
+        const { query } = body;
+
+        if (!query) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Missing query parameter in request body.' }),
+            };
+        }
+
+        // --- 3. Call Hugging Face API ---
+        const hfResponse = await fetch(`https://api-inference.huggingface.co/models/${MODEL_NAME}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${HF_ACCESS_TOKEN}`,
+            },
+            // Using the recommended Chat Completion structure for DeepSeek-V3
+            body: JSON.stringify({
+                messages: [
+                    { "role": "system", "content": PERSONAL_PROFILE },
+                    { "role": "user", "content": query }
+                ],
+                temperature: 0.7,
+                max_new_tokens: 500,
+            }),
+        });
+
+        const data = await hfResponse.json();
+
+        // 4. Handle API Errors (e.g., token expired, model loading)
+        if (hfResponse.status !== 200 || data.error) {
+            console.error('Hugging Face API Error:', data);
+            const errorMessage = data.error || "Unknown error from Hugging Face API.";
+
+            return {
+                statusCode: 502, // Bad Gateway (Upstream service error)
+                body: JSON.stringify({ response: `Upstream API Error: ${errorMessage}` }),
+            };
+        }
+
+        // 5. Extract and Return Successful Response
+        const botMessage = data.choices[0].message.content;
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ response: botMessage }),
+        };
+
+    } catch (error) {
+        console.error('Serverless Function Execution Error:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ response: 'An unexpected internal server error occurred during function execution.' }),
+        };
+    }
+};
